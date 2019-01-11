@@ -50,7 +50,7 @@ The difference can be the intended type of data that each one is supposed to hol
 class HashTable {
    constructor() {
       this.storage = [];
-      this.maxStorage = 100;
+      this.maxStorage = 200;
    }
 
    hashFunction(string, numOfBuckets) {
@@ -68,61 +68,71 @@ class HashTable {
    addCustomer(data) {
       var key = data.phone;
       var index = this.hashFunction(key, this.maxStorage);
+      var inserted = false;
 
       if (this.storage[index] === undefined) {
-         this.storage[index] = [[key, data]];
+         this.storage[index] = data;
+
+      } else if (this.storage[index].name === data.name
+         && this.storage[index].phone === data.phone
+         && this.storage[index].address === data.address) {
+
+            inserted = true;
+            console.log('Duplicate record found. Only the original record will be kept!')
+            console.log('\r');
 
       } else {
-         var inserted = false;
+         // using linear probing to deal with collisions
+         var newIndex = index + 1;
 
-         for (let i = 0; i < this.storage[index].length; i++) {
+         while (!inserted && newIndex < this.storage.length) {
 
-            if (this.storage[index][i][0] === key
-               && this.storage[index][i][1].name === data.name
-               && this.storage[index][i][1].phone === data.phone
-               && this.storage[index][i][1].address === data.address) {
-
+            if (this.storage[newIndex] === undefined) {
+               this.storage[newIndex] = data;
                inserted = true;
-               console.log('Duplicate record found. Only the original record will be kept!')
-               console.log('\r');
+
+            } else {
+               newIndex++;
             }
-
-            if (this.storage[index][i][0] === key &&
-               (!this.storage[index][i][1].name === data.name
-                  || !this.storage[index][i][1].phone === data.phone
-                  || !this.storage[index][i][1].address === data.address)) {
-
-               this.storage[index][i][1] = data;
-               inserted = true;
-            }
-         }
-
-         if (inserted === false) {
-            this.storage[index].push([key, data]);
          }
       }
    }
 
+
    customerLookup(phoneNumber) {
       var key = phoneNumber;
       var index = this.hashFunction(key, this.maxStorage);
+      var found = false;
+      var newIndex = index + 1;
 
       if (this.storage[index] === undefined) {
-         console.log(`Your query did not return any matches...`);
-      } else {
 
-         console.log(`The phone number "${key}" matches with the customer:`);
-         console.log('\r');
+         return console.log(`Your query did not return any matches...`);
+      }
 
-         for (let i = 0; i < this.storage[index].length; i++) {
-            if (this.storage[index][i][0] === key) {
+      if (this.storage[index] !== undefined && this.storage[index].phone !== phoneNumber) {
 
-               console.log(`Name: ${this.storage[index][i][1].name}`);
-               console.log(`Address: ${this.storage[index][i][1].address}`);
-               console.log('-----------------------------------------')
-               console.log('\r');
+         while (!found && newIndex < this.storage.length) {
+            if (this.storage[newIndex].phone === phoneNumber) {
+               index = newIndex;
+               found = true;
+
+            } else {
+               newIndex++;
             }
          }
+
+      } else {
+
+         found = true;
+      }
+
+      if (found) {
+         console.log(`The phone number "${phoneNumber}" matches with the customer:`);
+         console.log('\r');
+         console.log(`Name: ${this.storage[index].name}`);
+         console.log(`Address: ${this.storage[index].address}`);
+         console.log('-----------------------------------------')
       }
    }
 
@@ -162,7 +172,7 @@ customerDirectory.logSystemStorage();
 class HashTable {
    constructor() {
       this.storage = [];
-      this.maxStorage = 100;
+      this.maxStorage = 200;
    }
 
    hashFunction(string, numOfBuckets) {
@@ -180,40 +190,32 @@ class HashTable {
    addProduct(data) {
       var key = data.name;
       var index = this.hashFunction(key, this.maxStorage);
+      var inserted = false;
 
       if (this.storage[index] === undefined) {
-         this.storage[index] = [[key, data]];
+         this.storage[index] = data;
+
+      } else if (this.storage[index].name === data.name
+         && this.storage[index].color === data.color
+         && this.storage[index].price === data.price) {
+
+         data.stock += this.storage[index].stock;
+         this.storage[index] = data;
+         inserted = true;
 
       } else {
-         var inserted = false;
+         // using linear probing to deal with collisions
+         var newIndex = index + 1;
 
-         for (let i = 0; i < this.storage[index].length; i++) {
+         while (!inserted && newIndex < this.storage.length) {
 
-            if (this.storage[index][i][0] === key
-               && this.storage[index][i][1].name === data.name
-               && this.storage[index][i][1].brand === data.brand
-               && this.storage[index][i][1].type === data.type
-               && this.storage[index][i][1].color === data.color
-               && this.storage[index][i][1].price === data.price) {
-
-               data.stock += this.storage[index][i][1].stock;
-               this.storage[index][i][1] = data;
+            if (this.storage[newIndex] === undefined) {
+               this.storage[newIndex] = data;
                inserted = true;
+
+            } else {
+               newIndex++;
             }
-
-            if (this.storage[index][i][0] === key &&
-               (!this.storage[index][i][1].brand === data.brand
-                  || !this.storage[index][i][1].type === data.type
-                  || !this.storage[index][i][1].color === data.color
-                  || !this.storage[index][i][1].price === data.price)) {
-
-               this.storage[index][i][1] = data;
-               inserted = true;
-            }
-         }
-
-         if (inserted === false) {
-            this.storage[index].push([key, data]);
          }
       }
    }
@@ -221,17 +223,44 @@ class HashTable {
    retrieveProduct(itemName) {
       var key = itemName;
       var index = this.hashFunction(key, this.maxStorage);
+      var found = false;
+      var newIndex = index + 1;
 
       if (this.storage[index] === undefined) {
-         console.log(`Your query did not return any matches...`);
-      } else {
-         for (let i = 0; i < this.storage.length; i++) {
-            if (this.storage[index][i][0] === key) {
-               return `Number of ${key} in stock: ${this.storage[index][i][1].stock}`;
+
+         return console.log(`Your query did not return any matches...`);
+
+      }
+
+      if (this.storage[index] !== undefined && this.storage[index].name !== itemName) {
+
+         while (!found && newIndex < this.storage.length) {
+            if (this.storage[newIndex].name === itemName) {
+               index = newIndex;
+               found = true;
+            } else {
+               newIndex++;
             }
          }
+
+      } else {
+
+         found = true;
       }
+
+      if (found) {
+         console.log(`Information of product "${itemName}":`);
+         console.log('\r');
+         console.log(`Name: ${this.storage[index].name}`);
+         console.log(`Color: ${this.storage[index].color}`);
+         console.log(`Price: ${this.storage[index].price}`);
+         console.log(`Stock: ${this.storage[index].stock}`);
+         console.log('-----------------------------------------');
+         console.log('\r');
+      }
+
    }
+
 
    logSystemStorage() {
       console.log(this.storage);
@@ -242,9 +271,7 @@ var myStore = new HashTable();
 
 myStore.addProduct(
    {
-      name: 'Blue-Jeans',
-      brand: 'Super Jeans',
-      type: 'Jeans',
+      name: 'Jeans',
       color: 'Blue',
       price: '$39.99',
       stock: 200
@@ -252,9 +279,7 @@ myStore.addProduct(
 
 myStore.addProduct(
    {
-      name: 'Blue-Jeans',
-      brand: 'Super Jeans',
-      type: 'Jeans',
+      name: 'Jeans',
       color: 'Blue',
       price: '$39.99',
       stock: 30
@@ -262,9 +287,7 @@ myStore.addProduct(
 
 myStore.addProduct(
    {
-      name: 'White-Shirt',
-      brand: 'Original Shirts',
-      type: 'Shirt',
+      name: 'Shirt',
       color: 'White',
       price: '$29.99',
       stock: 13
@@ -272,17 +295,14 @@ myStore.addProduct(
 
 myStore.addProduct(
    {
-      name: 'Red-Shoes',
-      brand: 'Best Shoes',
-      type: 'Shoes',
-      color: 'Black',
+      name: 'Shoes',
+      color: 'Brown',
       price: '$20.99',
       stock: 8
    });
 
-console.log(myStore.retrieveProduct('Blue-Jeans'));
-console.log(myStore.retrieveProduct('White-Shirt'));
-console.log(myStore.retrieveProduct('Red-Shoes'));
+myStore.retrieveProduct('Jeans');
+myStore.retrieveProduct('Shirt');
 
 myStore.logSystemStorage();
 ```
@@ -295,7 +315,7 @@ myStore.logSystemStorage();
 class HashTable {
    constructor() {
       this.storage = [];
-      this.maxStorage = 100;
+      this.maxStorage = 200;
    }
 
    hashFunction(string, numOfBuckets) {
@@ -313,38 +333,33 @@ class HashTable {
    addNewspaper(data) {
       var key = data.publisher + data.date;
       var index = this.hashFunction(key, this.maxStorage);
+      var inserted = false;
 
       if (this.storage[index] === undefined) {
-         this.storage[index] = [[key, data]];
+         this.storage[index] = data;
 
+      } else if (this.storage[index].newspaper === data.newspaper
+         && this.storage[index].publisher === data.publisher
+         && this.storage[index].date === data.date
+         && this.storage[index].contents === data.contents) {
+
+         inserted = true;
+         console.log('Duplicate record found. Only the original record will be kept!')
+         console.log('\r');
       } else {
-         var inserted = false;
 
-         for (let i = 0; i < this.storage[index].length; i++) {
+         // using linear probing to deal with collisions
+         var newIndex = index + 1;
 
-            if (this.storage[index][i][0] === key
-               && this.storage[index][i][1].newspaper === data.newspaper
-               && this.storage[index][i][1].publisher === data.publisher
-               && this.storage[index][i][1].date === data.date
-               && this.storage[index][i][1].contents === data.contents) {
+         while (!inserted && newIndex < this.storage.length) {
 
+            if (this.storage[newIndex] === undefined) {
+               this.storage[newIndex] = data;
                inserted = true;
-               console.log('Duplicate record found. Only the original record will be kept!')
-               console.log('\r');
-            }
 
-            if (this.storage[index][i][0] === key &&
-               (!this.storage[index][i][1].newspaper === data.newspaper
-                  || !this.storage[index][i][1].publisher === data.publisher
-                  || !this.storage[index][i][1].date === data.date
-                  || !this.storage[index][i][1].contents === data.contents)) {
-
-               this.storage[index][i][1] = data;
-               inserted = true;
+            } else {
+               newIndex++;
             }
-         }
-         if (inserted === false) {
-            this.storage[index].push([key, data]);
          }
       }
    }
@@ -352,24 +367,40 @@ class HashTable {
    searchNewspaper(publisher, publicationDate) {
       var key = publisher + publicationDate;
       var index = this.hashFunction(key, this.maxStorage);
+      var found = false;
+      var newIndex = index + 1;
 
       if (this.storage[index] === undefined) {
-         console.log(`Your query did not return any matches...`);
-      } else {
+         return console.log(`Your query did not return any matches...`);
+      }
 
-         console.log(`Retrieving data:`);
-         console.log('\r');
+      if (this.storage[index] !== undefined
+         && this.storage[index].publisher !== publisher
+         && this.storage[index].publicationDate !== publicationDate) {
 
-         for (let i = 0; i < this.storage[index].length; i++) {
-            if (this.storage[index][i][0] === key) {
-               console.log(`Newspaper: ${this.storage[index][i][1].newspaper}`);
-               console.log(`Publisher: ${this.storage[index][i][1].publisher}`);
-               console.log(`Date: ${this.storage[index][i][1].date}`);
-               console.log(`Contents: ${this.storage[index][i][1].contents}`);
-               console.log('-----------------------------------------')
-               console.log('\r');
+         while (!found && newIndex < this.storage.length) {
+            if (this.storage[newIndex].publisher === publisher
+               && this.storage[index].publicationDate === publicationDate) {
+               index = newIndex;
+               found = true;
+
+            } else {
+               newIndex++;
             }
          }
+
+      } else {
+         found = true;
+      }
+
+      if (found) {
+         console.log(`Search criteria: "${publisher}" + "${publicationDate}"`);
+         console.log(`Newspaper: ${this.storage[index].newspaper}`);
+         console.log(`Publisher: ${this.storage[index].publisher}`);
+         console.log(`Date: ${this.storage[index].date}`);
+         console.log(`Contents: ${this.storage[index].contents}`);
+         console.log('-----------------------------------------')
+         console.log('\r');
       }
    }
 

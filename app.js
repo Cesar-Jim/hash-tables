@@ -1,7 +1,7 @@
 class HashTable {
    constructor() {
       this.storage = [];
-      this.maxStorage = 50;
+      this.maxStorage = 200;
    }
 
    hashFunction(string, numOfBuckets) {
@@ -16,64 +16,77 @@ class HashTable {
       return calculatedIndex;
    }
 
-   addCustomer(data) {
-      var key = data.phone;
+   addNewspaper(data) {
+      var key = data.publisher + data.date;
       var index = this.hashFunction(key, this.maxStorage);
+      var inserted = false;
 
       if (this.storage[index] === undefined) {
-         this.storage[index] = [[key, data]];
+         this.storage[index] = data;
 
+      } else if (this.storage[index].newspaper === data.newspaper
+         && this.storage[index].publisher === data.publisher
+         && this.storage[index].date === data.date
+         && this.storage[index].contents === data.contents) {
+
+         inserted = true;
+         console.log('Duplicate record found. Only the original record will be kept!')
+         console.log('\r');
       } else {
-         var inserted = false;
 
-         for (let i = 0; i < this.storage[index].length; i++) {
+         // using linear probing to deal with collisions
+         var newIndex = index + 1;
 
-            if (this.storage[index][i][0] === key
-               && this.storage[index][i][1].name === data.name
-               && this.storage[index][i][1].phone === data.phone
-               && this.storage[index][i][1].address === data.address) {
+         while (!inserted && newIndex < this.storage.length) {
 
+            if (this.storage[newIndex] === undefined) {
+               this.storage[newIndex] = data;
                inserted = true;
-               console.log('Duplicate record found. Only the original record will be kept!')
-               console.log('\r');
+
+            } else {
+               newIndex++;
             }
-
-            if (this.storage[index][i][0] === key &&
-               (!this.storage[index][i][1].name === data.name
-                  || !this.storage[index][i][1].phone === data.phone
-                  || !this.storage[index][i][1].address === data.address)) {
-
-               this.storage[index][i][1] = data;
-               inserted = true;
-            }
-         }
-
-         if (inserted === false) {
-            this.storage[index].push([key, data]);
          }
       }
    }
 
-   customerLookup(phoneNumber) {
-      var key = phoneNumber;
+   searchNewspaper(publisher, publicationDate) {
+      var key = publisher + publicationDate;
       var index = this.hashFunction(key, this.maxStorage);
+      var found = false;
+      var newIndex = index + 1;
 
       if (this.storage[index] === undefined) {
-         console.log(`Your query did not return any matches...`);
-      } else {
+         return console.log(`Your query did not return any matches...`);
+      }
 
-         console.log(`The phone number "${key}" matches with the customer:`);
-         console.log('\r');
+      if (this.storage[index] !== undefined
+         && this.storage[index].publisher !== publisher
+         && this.storage[index].publicationDate !== publicationDate) {
 
-         for (let i = 0; i < this.storage[index].length; i++) {
-            if (this.storage[index][i][0] === key) {
+         while (!found && newIndex < this.storage.length) {
+            if (this.storage[newIndex].publisher === publisher
+               && this.storage[index].publicationDate === publicationDate) {
+               index = newIndex;
+               found = true;
 
-               console.log(`Name: ${this.storage[index][i][1].name}`);
-               console.log(`Address: ${this.storage[index][i][1].address}`);
-               console.log('-----------------------------------------')
-               console.log('\r');
+            } else {
+               newIndex++;
             }
          }
+
+      } else {
+         found = true;
+      }
+
+      if (found) {
+         console.log(`Search criteria: "${publisher}" + "${publicationDate}"`);
+         console.log(`Newspaper: ${this.storage[index].newspaper}`);
+         console.log(`Publisher: ${this.storage[index].publisher}`);
+         console.log(`Date: ${this.storage[index].date}`);
+         console.log(`Contents: ${this.storage[index].contents}`);
+         console.log('-----------------------------------------')
+         console.log('\r');
       }
    }
 
@@ -82,22 +95,24 @@ class HashTable {
    }
 }
 
-var customerDirectory = new HashTable();
+var newspaperRepo = new HashTable();
 
-customerDirectory.addCustomer(
+newspaperRepo.addNewspaper(
    {
-      name: 'John Smith',
-      phone: '555-555-5555',
-      address: '100, Main St.'
+      newspaper: 'Time Press',
+      publisher: 'John Doe',
+      date: 'Oct-20-2003',
+      contents: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Non sapiente libero quidem nulla aut dolorum nam sed voluptas veniam! Velit nam expedita aperiam in atque? Quod maxime ullam vel debitis.'
    });
 
-customerDirectory.addCustomer(
+newspaperRepo.addNewspaper(
    {
-      name: 'Robert Mason',
-      phone: '123-456-7890',
-      address: '1, Chocolate St.'
+      newspaper: 'Detroit Courier',
+      publisher: 'Karen Smith',
+      date: 'January-11-1999',
+      contents: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Non sapiente libero quidem nulla aut dolorum nam sed voluptas veniam! Velit nam expedita aperiam in atque? Quod maxime ullam vel debitis.'
    });
 
-customerDirectory.customerLookup('123-456-7890');
+newspaperRepo.searchNewspaper('Karen Smith', 'January-11-1999');
 
-customerDirectory.logSystemStorage();
+newspaperRepo.logSystemStorage();
